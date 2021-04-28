@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Authentication;
 using jwtapi.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace jwtapi.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
@@ -28,6 +29,8 @@ namespace jwtapi.Controllers
         [HttpGet]
         public IEnumerable<WeatherForecast> Get()
         {
+            _logger.LogInformation($"Got request from user {HttpContext.User.Identity.Name ?? "null"}! IsAuthenticated: {User.Identity.IsAuthenticated}");
+            _logger.LogInformation($"Has user got Admin? {HttpContext.User.HasClaim(ClaimTypes.Role, "Admin").ToString()}");
             var rng = new Random();
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {

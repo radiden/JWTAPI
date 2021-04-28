@@ -1,22 +1,17 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Text;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
 using jwtapi.Data;
+using jwtapi.Models;
+using Microsoft.AspNetCore.Identity;
 
 namespace jwtapi
 {
@@ -34,11 +29,33 @@ namespace jwtapi
         {
 
             services.AddControllers();
-            services.AddDbContext<RefreshContext>(options => options.UseMySql(Configuration.GetConnectionString("RefreshContext"), new MariaDbServerVersion(new Version(10, 5, 9))));
+            services.AddDbContext<RefreshContext>(options =>
+                options.UseMySql(Configuration.GetConnectionString("RefreshContext"),
+                    new MariaDbServerVersion(new Version(10, 5, 9))));
+            services.AddDbContext<UserContext>(options =>
+                options.UseMySql(Configuration.GetConnectionString("RefreshContext"),
+                    new MariaDbServerVersion(new Version(10, 5, 9))));
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "jwtapi", Version = "v1" });
             });
+            
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"));
+            });
+
+            services.AddIdentity<UserModel, IdentityRole>(options =>
+                {
+                    options.Password.RequiredLength = 8;
+                    options.Password.RequireDigit = false;
+                    options.Password.RequireLowercase = false;
+                    options.Password.RequireUppercase = false;
+                    options.Password.RequiredUniqueChars = 0;
+                    options.Password.RequireNonAlphanumeric = false;
+                })
+                .AddEntityFrameworkStores<UserContext>()
+                .AddDefaultTokenProviders();
 
             services.AddAuthentication(options =>
             {
@@ -75,9 +92,8 @@ namespace jwtapi
 
             app.UseRouting();
 
-            app.UseAuthorization();
-
             app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {

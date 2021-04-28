@@ -1,5 +1,3 @@
-using System;
-
 namespace jwtapi.Models
 {
     public class Refresh
