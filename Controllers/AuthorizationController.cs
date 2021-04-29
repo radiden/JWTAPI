@@ -118,13 +118,13 @@ namespace jwtapi.Controllers
                             if (ValidateToken(token.RefreshToken))
                             {
                                 _context.Refresh.Remove(finalToken);
-                                _logger.LogInformation("Successfully removed token, redirecting...");
+                                _logger.LogInformation("Successfully removed token, sending new token...");
 
                                 var subject = GetUserFromJwt(token.Token);
 
                                 var userInfo = _userManager.Users.First(user => user.UserName == subject);
                                 
-                                return new OkObjectResult(GenerateNewJwt(userInfo));
+                                return new OkObjectResult(await GenerateNewJwt(userInfo));
                             } else {
                                 return new BadRequestObjectResult("The refresh token has expired.");
                             }
