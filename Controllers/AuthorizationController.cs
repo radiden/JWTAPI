@@ -143,9 +143,10 @@ namespace jwtapi.Controllers
         }
         
         [HttpPost]
-        [Route("AddToRole")]
-        public async Task<IActionResult> AddToRole([FromBody]AddRoleModel info)
+        [Route("ChangeRole")]
+        public async Task<IActionResult> ChangeRole([FromBody]AddRoleModel info)
         {
+
             if (String.IsNullOrWhiteSpace(info.Username))
             {
                 return new BadRequestObjectResult("Please provide a username!");
@@ -157,9 +158,30 @@ namespace jwtapi.Controllers
             {
                 return new BadRequestObjectResult("Couldn't find that user.");
             }
-            await _userManager.AddClaimAsync(user, new Claim(ClaimTypes.Role, info.Role));
+
+            var claims = await _userManager.GetClaimsAsync(user);
             
-            return new OkObjectResult($"Added user {info.Username} to role {info.Role}!");
+            var roleClaims = claims.Where(claim => claim.Type == ClaimTypes.Role);
+            
+            switch ((RoleAction)info.Action)
+            {
+                case RoleAction.Add:
+                    if (roleClaims.FirstOrDefault(claim => claim.Value == info.Role) != null)
+                    {
+                        return new BadRequestObjectResult($"User {info.Username} already has role {info.Role}!");
+                    }
+                    await _userManager.AddClaimAsync(user, new Claim(ClaimTypes.Role, info.Role));
+                    return new OkObjectResult($"Added user {info.Username} to role {info.Role}!");
+                case RoleAction.Delete:
+                    if (roleClaims.FirstOrDefault(claim => claim.Value == info.Role) == null)
+                    {
+                        return new BadRequestObjectResult($"User {info.Username} already has role {info.Role}!");
+                    }
+                    await _userManager.RemoveClaimAsync(user, new Claim(ClaimTypes.Role, info.Role));
+                    return new OkObjectResult($"Removed user {info.Username} from role {info.Role}!");
+                default:
+                    return new BadRequestObjectResult("Please specify a valid action.");
+            }
         }
 
         private string GetUserFromJwt(string jwt)
@@ -187,7 +209,7 @@ namespace jwtapi.Controllers
             var token = new JwtSecurityToken(
                 issuer: "jwtapi",
                 audience: "jwtapiuser",
-                expires: DateTime.UtcNow.AddMinutes(1),
+                expires: DateTime.UtcNow.AddHours(3),
                 claims: claims,
                 signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
             );
@@ -212,7 +234,7 @@ namespace jwtapi.Controllers
             return new TokenDetails
             {
                 Token = writtenToken,
-                TokenExpirationDate = DateTime.UtcNow.AddMinutes(1),
+                TokenExpirationDate = DateTime.UtcNow.AddHours(3),
                 RefreshToken = encodedRefresh,
                 RefreshExpirationDate = DateTime.UtcNow.AddDays(7)
             };
@@ -252,6 +274,12 @@ namespace jwtapi.Controllers
         {
             var tokenJson = JsonSerializer.Deserialize<RefreshToken>(Convert.FromBase64String(token));
             return tokenJson.Expiration >= DateTime.UtcNow;
+        }
+        
+        private enum RoleAction : int
+        {
+            Add = 0,
+            Delete = 1
         }
     }
 }

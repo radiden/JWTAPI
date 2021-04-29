@@ -35,6 +35,15 @@ namespace jwtapi
             services.AddDbContext<UserContext>(options =>
                 options.UseMySql(Configuration.GetConnectionString("RefreshContext"),
                     new MariaDbServerVersion(new Version(10, 5, 9))));
+            services.AddDbContext<ClientContext>(options =>
+                options.UseMySql(Configuration.GetConnectionString("ProductContext"),
+                    new MariaDbServerVersion(new Version(10, 5, 9))));
+            services.AddDbContext<ProductContext>(options =>
+                options.UseMySql(Configuration.GetConnectionString("ProductContext"),
+                    new MariaDbServerVersion(new Version(10, 5, 9))));
+            services.AddDbContext<TransactionContext>(options =>
+                options.UseMySql(Configuration.GetConnectionString("ProductContext"),
+                    new MariaDbServerVersion(new Version(10, 5, 9))));
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "jwtapi", Version = "v1" });
@@ -42,6 +51,8 @@ namespace jwtapi
             
             services.AddAuthorization(options =>
             {
+                options.AddPolicy("RequireCustomerRole", policy => policy.RequireRole("Customer", "Manager", "Admin"));
+                options.AddPolicy("RequireManagerRole", policy => policy.RequireRole("Manager", "Admin"));
                 options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"));
             });
 
