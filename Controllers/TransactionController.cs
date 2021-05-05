@@ -41,8 +41,10 @@ namespace jwtapi.Controllers
             
             var transaction = new TransactionProd
             {
-                Client = _client.Client.FirstOrDefault(client => client.Id == info.ClientId),
-                Product = _product.Product.FirstOrDefault(product => product.Id == info.ProductId),
+                // Client = _client.Client.FirstOrDefault(client => client.Id == info.ClientId),
+                // Product = _product.Product.FirstOrDefault(product => product.Id == info.ProductId),
+                ClientId = info.ClientId,
+                ProductId = info.ProductId,
                 Time = info.Time
             };
             

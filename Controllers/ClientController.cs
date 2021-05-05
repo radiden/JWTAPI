@@ -1,10 +1,10 @@
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using jwtapi.Data;
 using jwtapi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace jwtapi.Controllers
 {
@@ -30,7 +30,28 @@ namespace jwtapi.Controllers
 
             await _client.AddAsync(info);
             await _client.SaveChangesAsync();
-            return new OkObjectResult($"Added client {info.Name} {info.Surname} to database!");
+            var response = new OkResponse
+            {
+                Info = "Added successfully!",
+                Data = $"Client: {info.Name} {info.Surname}"
+            };
+            return new OkObjectResult(response);
+        }
+
+        [Authorize(Policy = "RequireManagerRole")]
+        [HttpDelete]
+        [Route("Remove")]
+        public async Task<IActionResult> RemoveClient([FromBody]int clientId)
+        {
+            var client = await _client.Client.FirstOrDefaultAsync(r => r.Id == clientId);
+            _client.Remove(client);
+            await _client.SaveChangesAsync();
+            var response = new OkResponse
+            {
+                Info = "Removed successfully!",
+                Data = $"Client: {client.Name} {client.Surname}"
+            };
+            return new OkObjectResult(response);
         }
 
         [Authorize(Policy = "RequireManagerRole")]
