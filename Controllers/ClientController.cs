@@ -41,9 +41,9 @@ namespace jwtapi.Controllers
         [Authorize(Policy = "RequireManagerRole")]
         [HttpDelete]
         [Route("Remove")]
-        public async Task<IActionResult> RemoveClient([FromBody]int clientId)
+        public async Task<IActionResult> RemoveClient(int id)
         {
-            var client = await _client.Client.FirstOrDefaultAsync(r => r.Id == clientId);
+            var client = await _client.Client.FirstOrDefaultAsync(r => r.Id == id);
             _client.Remove(client);
             await _client.SaveChangesAsync();
             var response = new OkResponse

@@ -54,7 +54,7 @@ namespace jwtapi.Controllers
 
             if (user == null || !await _userManager.CheckPasswordAsync(user, info.Password))
             {
-                return new BadRequestObjectResult($"Wrong credentials!");
+                return new BadRequestObjectResult("Wrong credentials!");
             }
 
             var token = await GenerateNewJwt(user);
