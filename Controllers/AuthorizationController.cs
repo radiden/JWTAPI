@@ -175,7 +175,7 @@ namespace jwtapi.Controllers
                 case RoleAction.Delete:
                     if (roleClaims.FirstOrDefault(claim => claim.Value == info.Role) == null)
                     {
-                        return new BadRequestObjectResult($"User {info.Username} already has role {info.Role}!");
+                        return new BadRequestObjectResult($"User {info.Username} doesn't have role {info.Role}!");
                     }
                     await _userManager.RemoveClaimAsync(user, new Claim(ClaimTypes.Role, info.Role));
                     return new OkObjectResult($"Removed user {info.Username} from role {info.Role}!");
