@@ -17,6 +17,7 @@ namespace jwtapi
 {
     public class Startup
     {
+        private readonly string allowEverything = "_allowEverything";
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -87,6 +88,16 @@ namespace jwtapi
                     ClockSkew = TimeSpan.Zero
                 };
             });
+
+            services.AddCors(c =>
+            {
+                c.AddPolicy(name: allowEverything, builder =>
+                {
+                    builder.AllowAnyOrigin()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -102,6 +113,8 @@ namespace jwtapi
             // app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseCors(allowEverything);
 
             app.UseAuthentication();
             app.UseAuthorization();

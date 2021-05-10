@@ -41,9 +41,15 @@ namespace jwtapi.Controllers
         [Authorize(Policy = "RequireManagerRole")]
         [HttpDelete]
         [Route("Remove")]
-        public async Task<IActionResult> RemoveClient([FromBody]int clientId)
+        public async Task<IActionResult> RemoveClient(int id)
         {
-            var client = await _client.Client.FirstOrDefaultAsync(r => r.Id == clientId);
+            var client = await _client.Client.FirstOrDefaultAsync(r => r.Id == id);
+            
+            if (client == null)
+            {
+                return new BadRequestObjectResult($"No user with id {id} could be found.");
+            }
+            
             _client.Remove(client);
             await _client.SaveChangesAsync();
             var response = new OkResponse
